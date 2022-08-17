@@ -1,14 +1,29 @@
 import type { NextPage } from "next"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Header from "../components/Header"
 import ScrollToTopButton from "../components/ScrollToTopButton"
-import Spacer from "../components/Spacer"
-import Spinner from "../components/Spinner"
 import Wrapper from "../components/Wrapper"
 import { NextSeo } from "next-seo"
+import WeatherInfo from "../components/WeatherInfo"
+import { WeatherAPIDataType } from "../util/types"
 
 const Home: NextPage = () => {
-  const [isLoading, setIsLoading] = useState(false)
+  const [weatherApiData, setWeatherApiData] = useState<WeatherAPIDataType>()
+  const [isCelsius, setIsCelsius] = useState(true)
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        fetch(
+          `https://weather-proxy.freecodecamp.rocks/api/current?lat=${position.coords.latitude}&lon=${position.coords.longitude}`
+        )
+          .then((res) => res.json())
+          .then((data: WeatherAPIDataType) => {
+            setWeatherApiData(data)
+          })
+      })
+    }
+  }, [])
 
   return (
     <Wrapper>
@@ -33,11 +48,12 @@ const Home: NextPage = () => {
           },
         ]}
       />
-      <Header title="Show the Local Weather" />
-      <Spacer size="0.5rem" />
-      <Spinner loading={isLoading} />
-      <Spacer size="0.5rem" />
-      <Spacer size="2rem" />
+      <Header title="Show me the Weather!" />
+      <WeatherInfo
+        weatherApiData={weatherApiData}
+        isCelsius={isCelsius}
+        toggleCelsius={() => setIsCelsius(!isCelsius)}
+      />
       <ScrollToTopButton />
     </Wrapper>
   )
